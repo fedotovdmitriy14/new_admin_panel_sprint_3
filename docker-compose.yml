@@ -41,6 +41,19 @@ services:
     ports:
       - "80:80"
 
+  elasticsearch:
+    image: elasticsearch:8.5.3
+    environment:
+      discovery.type: "single-node"
+      ES_JAVA_OPTS: -Xms1g -Xmx1g
+      xpack.security.enabled: "false"
+      USE_SSL: "false"
+    ports:
+      - "9200:9200"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
 volumes:
   static:
 
