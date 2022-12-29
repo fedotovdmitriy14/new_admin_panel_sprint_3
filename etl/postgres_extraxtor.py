@@ -10,11 +10,11 @@ class PostgresExtractor:
     def __init__(self, dsl: dict):
         self.dsl = dsl
         self.connection = psycopg2.connect(**dsl, cursor_factory=DictCursor)
-        self.film_modified = None
+        self.film_modified_min = None
 
     def extract_data_from_db(self):
-        if self.film_modified is None:
-            self.film_modified = datetime.min
+        if self.film_modified_min is None:
+            self.film_modified_min = datetime.min
         cursor = self.connection.cursor()
         cursor.execute(f"""
                 SELECT
@@ -61,20 +61,20 @@ class PostgresExtractor:
                 LEFT JOIN content.person p ON p.id = pfw.person_id
                 LEFT JOIN content.genre_film_work gfw ON gfw.film_work_id = fw.id
                 LEFT JOIN content.genre g ON g.id = gfw.genre_id
-                WHERE fw.modified > '{self.film_modified}'
+                WHERE fw.modified > '{self.film_modified_min}'
                 GROUP BY fw.id
                 ORDER BY fw.modified
                 LIMIT 100;
         """)
         data = cursor.fetchall()
-        self.film_modified = data[-1][6]
+        self.film_modified_min = data[-1][6]
         return data
 
 
 p = PostgresExtractor(dsl)
-print(p.film_modified)
+print(p.film_modified_min)
 p.extract_data_from_db()
-print(p.film_modified)
+print(p.film_modified_min)
 p.extract_data_from_db()
-print(p.film_modified)
+print(p.film_modified_min)
 
