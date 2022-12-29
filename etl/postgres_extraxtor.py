@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 
 import psycopg2
 from psycopg2.extras import DictCursor
@@ -12,19 +12,9 @@ class PostgresExtractor:
         self.connection = psycopg2.connect(**dsl, cursor_factory=DictCursor)
         self.film_modified = None
 
-    def get_film_modified(self):
-        with self.connection.cursor() as curs:
-            curs.execute("""
-                SELECT modified
-                FROM content.film_work
-                ORDER BY modified
-                LIMIT 1
-            """)
-            return curs.fetchone()[0]
-
     def extract_data_from_db(self):
         if self.film_modified is None:
-            self.film_modified = self.get_film_modified()
+            self.film_modified = datetime.min
         cursor = self.connection.cursor()
         cursor.execute(f"""
                 SELECT
@@ -71,7 +61,7 @@ class PostgresExtractor:
                 LEFT JOIN content.person p ON p.id = pfw.person_id
                 LEFT JOIN content.genre_film_work gfw ON gfw.film_work_id = fw.id
                 LEFT JOIN content.genre g ON g.id = gfw.genre_id
-                WHERE fw.modified >= '{self.film_modified}'
+                WHERE fw.modified > '{self.film_modified}'
                 GROUP BY fw.id
                 ORDER BY fw.modified
                 LIMIT 100;
@@ -85,3 +75,6 @@ p = PostgresExtractor(dsl)
 print(p.film_modified)
 p.extract_data_from_db()
 print(p.film_modified)
+p.extract_data_from_db()
+print(p.film_modified)
+
