@@ -34,7 +34,7 @@ class PostgresExtractor:
                             )
                         ) FILTER (WHERE p.id is not null and pfw.role = 'actor'),
                         '[]'
-                    ) as actors_names,
+                    ) as actors,
                     COALESCE (
                         json_agg(
                             DISTINCT jsonb_build_object(
@@ -44,7 +44,7 @@ class PostgresExtractor:
                             )
                         ) FILTER (WHERE p.id is not null and pfw.role = 'writer'),
                         '[]'
-                    ) as writers_names,
+                    ) as writers,
                     COALESCE (
                         json_agg(
                             DISTINCT jsonb_build_object(
@@ -55,7 +55,9 @@ class PostgresExtractor:
                         ) FILTER (WHERE p.id is not null and pfw.role = 'director'),
                         '[]'
                     ) as director,
-                    array_agg(DISTINCT g.name) as genres
+                    array_agg(DISTINCT g.name) as genres,
+                    array_agg(DISTINCT p.full_name) FILTER ( WHERE pfw.role = 'actor' ) as actors_names,
+                    array_agg(DISTINCT p.full_name) FILTER ( WHERE pfw.role = 'writer' ) as writers_names
                 FROM content.film_work fw
                 LEFT JOIN content.person_film_work pfw ON pfw.film_work_id = fw.id
                 LEFT JOIN content.person p ON p.id = pfw.person_id
