@@ -6,7 +6,7 @@ from pydantic import BaseModel
 
 
 class Person(BaseModel):
-    # id: Optional[UUID] = None
+    id: Optional[UUID] = None
     name: Optional[str] = None
 
 
