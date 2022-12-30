@@ -1,7 +1,10 @@
 import abc
 from typing import Any, Optional
 
+import backoff
 import redis
+
+from settings import BACKOFF_MAX_TRIES
 
 
 class State:
@@ -26,26 +29,34 @@ class RedisState(State):
         self.redis_config = redis_config
         self.redis_connection = redis_connection
 
-    def check_connection(self) -> bool:
+    def is_connection_alive(self) -> bool:
         try:
             self.redis_connection.ping()
         except:
             return False
         return True
 
-    def get_connection(self) -> None:
-        if self.redis_connection and self.check_connection():
+    def check_connection_exists(self) -> None:
+        """Проверяется наличие соединения к Redis"""
+        if self.redis_connection and self.is_connection_alive():
             return self.redis_connection
-        self.redis_connection = redis.Redis(**self.redis_config)
+        self.redis_connection = self.create_connection()
 
+    @backoff.on_exception(backoff.expo, Exception, max_tries=BACKOFF_MAX_TRIES)
+    def create_connection(self) -> redis.Redis:
+        """Создается новое соединение к Redis"""
+        return redis.Redis(**self.redis_config)
+
+    @backoff.on_exception(backoff.expo, Exception, max_tries=BACKOFF_MAX_TRIES)
     def set_key(self, key: str, value: Any) -> None:
-        """Сохраняет ключ и его значение в Redis"""
-        self.get_connection()
+        """Сохраняется ключ и его значение в Redis"""
+        self.check_connection_exists()
         self.redis_connection.set(key, value.encode())
 
+    @backoff.on_exception(backoff.expo, Exception, max_tries=BACKOFF_MAX_TRIES)
     def get_key(self, key: str) -> Any:
         """Получение значения по переданному ключу"""
-        self.get_connection()
+        self.check_connection_exists()
         value = self.redis_connection.get(key)
         if value:
             value = value.decode()

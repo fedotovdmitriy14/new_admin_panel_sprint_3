@@ -4,6 +4,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
+BACKOFF_MAX_TRIES = os.environ.get('BACKOFF_MAX_TRIES')
+
+
 dsl = {
     'dbname': os.environ.get('DB_NAME'),
     'user': os.environ.get('DB_USER'),
