@@ -2,7 +2,7 @@ from datetime import datetime
 
 import backoff
 import psycopg2
-from psycopg2 import connection
+from psycopg2.extensions import connection
 from psycopg2.extras import DictCursor
 
 from settings import BACKOFF_MAX_TRIES
