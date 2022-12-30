@@ -1,19 +1,34 @@
 from datetime import datetime
 
+import backoff
 import psycopg2
 from psycopg2.extras import DictCursor
 
+from settings import BACKOFF_MAX_TRIES
 from state import RedisState
 
 
 class PostgresExtractor:
     def __init__(self, dsl: dict, redis_storage: RedisState):
         self.dsl = dsl
-        self.connection = psycopg2.connect(**dsl, cursor_factory=DictCursor)
+        self.connection = None
         self.redis_storage = redis_storage
-        # self.redis_storage.set_key('last_modified', datetime.min)
 
+    def check_connection_exists(self) -> None:
+        """Создается новое соединения, если его нет или оно закрыто"""
+        if self.connection is None or self.connection.closed:
+            self.create_connection()
+
+    @backoff.on_exception(backoff.expo, Exception, max_tries=BACKOFF_MAX_TRIES)
+    def create_connection(self) -> None:
+        """Создаются новое соединение"""
+        self.connection = psycopg2.connect(**self.dsl, cursor_factory=DictCursor)
+
+    @backoff.on_exception(backoff.expo, Exception, max_tries=BACKOFF_MAX_TRIES)
     def extract_data_from_db(self):
+        print(self.connection)
+        self.check_connection_exists()
+        print(self.connection)
         last_modified = self.redis_storage.get_key('last_modified')
         if last_modified is None:
             self.redis_storage.set_key('last_modified', datetime.min)

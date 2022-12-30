@@ -1,0 +1,2 @@
+class ElasticLoader:
+    pass
