@@ -21,3 +21,8 @@ redis_config = {
         'host': os.environ.get('REDIS_HOST'),
         'port': os.environ.get('REDIS_PORT'),
 }
+
+elastic_config = {
+        'host': os.environ.get('ELASTIC_HOST'),
+        'port': os.environ.get('ELASTIC_PORT'),
+}
