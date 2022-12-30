@@ -26,9 +26,7 @@ class PostgresExtractor:
 
     @backoff.on_exception(backoff.expo, Exception, max_tries=BACKOFF_MAX_TRIES)
     def extract_data_from_db(self):
-        print(self.connection)
         self.check_connection_exists()
-        print(self.connection)
         last_modified = self.redis_storage.get_key('last_modified')
         if last_modified is None:
             self.redis_storage.set_key('last_modified', datetime.min)
