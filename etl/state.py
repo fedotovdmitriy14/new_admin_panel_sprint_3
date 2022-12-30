@@ -1,10 +1,11 @@
 import abc
+import pickle
 from typing import Any, Optional
 
 import backoff
 import redis
 
-from settings import BACKOFF_MAX_TRIES
+from settings import BACKOFF_MAX_TRIES, redis_config
 
 
 class State:
@@ -19,7 +20,7 @@ class State:
         pass
 
     @abc.abstractmethod
-    def get_state(self, key: str) -> Any:
+    def get_key(self, key: str) -> Any:
          """Получить состояние по определённому ключу"""
          pass
 
@@ -51,7 +52,7 @@ class RedisState(State):
     def set_key(self, key: str, value: Any) -> None:
         """Сохраняется ключ и его значение в Redis"""
         self.check_connection_exists()
-        self.redis_connection.set(key, value.encode())
+        self.redis_connection.set(key, pickle.dumps(value))
 
     @backoff.on_exception(backoff.expo, Exception, max_tries=BACKOFF_MAX_TRIES)
     def get_key(self, key: str) -> Any:
@@ -59,5 +60,5 @@ class RedisState(State):
         self.check_connection_exists()
         value = self.redis_connection.get(key)
         if value:
-            value = value.decode()
+            value = pickle.loads(value)
         return value
