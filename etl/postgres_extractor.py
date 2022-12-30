@@ -2,6 +2,7 @@ from datetime import datetime
 
 import backoff
 import psycopg2
+from psycopg2 import connection
 from psycopg2.extras import DictCursor
 
 from settings import BACKOFF_MAX_TRIES
@@ -20,9 +21,10 @@ class PostgresExtractor:
             self.create_connection()
 
     @backoff.on_exception(backoff.expo, Exception, max_tries=BACKOFF_MAX_TRIES)
-    def create_connection(self) -> None:
+    def create_connection(self) -> connection:
         """Создается новое соединение"""
         self.connection = psycopg2.connect(**self.dsl, cursor_factory=DictCursor)
+        return self.connection
 
     @backoff.on_exception(backoff.expo, Exception, max_tries=BACKOFF_MAX_TRIES)
     def extract_data_from_db(self):
