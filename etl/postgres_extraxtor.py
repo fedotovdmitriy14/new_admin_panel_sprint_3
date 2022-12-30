@@ -21,7 +21,7 @@ class PostgresExtractor:
 
     @backoff.on_exception(backoff.expo, Exception, max_tries=BACKOFF_MAX_TRIES)
     def create_connection(self) -> None:
-        """Создаются новое соединение"""
+        """Создается новое соединение"""
         self.connection = psycopg2.connect(**self.dsl, cursor_factory=DictCursor)
 
     @backoff.on_exception(backoff.expo, Exception, max_tries=BACKOFF_MAX_TRIES)
