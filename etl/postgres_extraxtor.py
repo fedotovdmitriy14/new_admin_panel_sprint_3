@@ -3,18 +3,21 @@ from datetime import datetime
 import psycopg2
 from psycopg2.extras import DictCursor
 
-from settings import dsl
+from state import RedisState
 
 
 class PostgresExtractor:
-    def __init__(self, dsl: dict):
+    def __init__(self, dsl: dict, redis_storage: RedisState):
         self.dsl = dsl
         self.connection = psycopg2.connect(**dsl, cursor_factory=DictCursor)
-        self.film_modified_min = None
+        self.redis_storage = redis_storage
+        # self.redis_storage.set_key('last_modified', datetime.min)
 
     def extract_data_from_db(self):
-        if self.film_modified_min is None:
-            self.film_modified_min = datetime.min
+        last_modified = self.redis_storage.get_key('last_modified')
+        if last_modified is None:
+            self.redis_storage.set_key('last_modified', datetime.min)
+
         cursor = self.connection.cursor()
         cursor.execute(f"""
                 SELECT
@@ -63,20 +66,15 @@ class PostgresExtractor:
                 LEFT JOIN content.person p ON p.id = pfw.person_id
                 LEFT JOIN content.genre_film_work gfw ON gfw.film_work_id = fw.id
                 LEFT JOIN content.genre g ON g.id = gfw.genre_id
-                WHERE fw.modified > '{self.film_modified_min}'
+                WHERE fw.modified > '{last_modified}'
                 GROUP BY fw.id
                 ORDER BY fw.modified
-                LIMIT 100;
+                LIMIT 500;
         """)
         data = cursor.fetchall()
-        self.film_modified_min = data[-1][6]
+        try:
+            last_modified = data[-1][6]
+        except IndexError:
+            last_modified = datetime.min
+        self.redis_storage.set_key('last_modified', last_modified)
         return data
-
-
-p = PostgresExtractor(dsl)
-print(p.film_modified_min)
-p.extract_data_from_db()
-print(p.film_modified_min)
-p.extract_data_from_db()
-print(p.film_modified_min)
-
