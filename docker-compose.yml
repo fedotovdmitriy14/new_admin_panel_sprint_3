@@ -50,9 +50,20 @@ services:
       USE_SSL: "false"
     ports:
       - "9200:9200"
+    networks:
+      - yandex_django
     depends_on:
       postgres:
         condition: service_healthy
+
+  redis:
+    image: redis:latest
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    networks:
+      - yandex_django
+    ports:
+      - "6379:6379"
 
 volumes:
   static:
