@@ -52,6 +52,8 @@ services:
       - "9200:9200"
     networks:
       - yandex_django
+    volumes:
+      - ../elastic_data:/usr/share/elasticsearch/data
     depends_on:
       postgres:
         condition: service_healthy
@@ -62,6 +64,8 @@ services:
       - ALLOW_EMPTY_PASSWORD=yes
     networks:
       - yandex_django
+    volumes:
+      - ../redis_data:/data
     ports:
       - "6379:6379"
 
