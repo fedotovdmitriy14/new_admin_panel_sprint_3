@@ -8,6 +8,7 @@ load_dotenv()
 
 BACKOFF_MAX_TRIES = os.environ.get('BACKOFF_MAX_TRIES')
 
+
 class PosgresDsl(BaseSettings):
     dbname: str = Field(env="DB_NAME")
     user: str = Field(env="DB_USER")

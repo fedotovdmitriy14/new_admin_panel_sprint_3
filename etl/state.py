@@ -22,8 +22,8 @@ class State:
 
     @abc.abstractmethod
     def get_key(self, key: str) -> Any:
-         """Получить состояние по определённому ключу"""
-         pass
+        """Получить состояние по определённому ключу"""
+        pass
 
 
 class RedisState(State):
@@ -32,11 +32,7 @@ class RedisState(State):
         self.redis_connection = redis_connection
 
     def is_connection_alive(self) -> bool:
-        try:
-            self.redis_connection.ping()
-        except:
-            return False
-        return True
+        return self.redis_connection.ping()
 
     def check_connection_exists(self) -> None:
         """Проверяется наличие соединения к Redis"""
