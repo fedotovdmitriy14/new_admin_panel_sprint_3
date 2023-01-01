@@ -5,7 +5,7 @@ import psycopg2
 from psycopg2.extensions import connection
 from psycopg2.extras import DictCursor
 
-from settings import BACKOFF_MAX_TRIES, PosgresDsl
+from settings import BACKOFF_MAX_TRIES, PosgresDsl, BATCH_SIZE
 from state import RedisState
 
 
@@ -77,7 +77,7 @@ class PostgresExtractor:
                     WHERE fw.modified > '{last_modified}'
                     GROUP BY fw.id
                     ORDER BY fw.modified
-                    LIMIT 500;
+                    LIMIT {BATCH_SIZE};
             """)
             data = cursor.fetchall()
             try:

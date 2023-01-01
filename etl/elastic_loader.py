@@ -5,7 +5,7 @@ import backoff
 from elasticsearch import Elasticsearch, helpers
 
 from models import FilmWork
-from settings import BACKOFF_MAX_TRIES, ELASTIC_CONFIG
+from settings import BACKOFF_MAX_TRIES, ELASTIC_CONFIG, BATCH_SIZE
 from state import RedisState
 
 
@@ -69,7 +69,7 @@ class ElasticLoader:
                 client=self.elastic_connection,
                 actions=films_to_insert,
                 index='movies',
-                chunk_size=500,
+                chunk_size=BATCH_SIZE,
             )
             logger.info('\nRESPONSE:', response)
 

@@ -8,6 +8,7 @@ load_dotenv()
 
 
 BACKOFF_MAX_TRIES = os.environ.get('BACKOFF_MAX_TRIES')
+BATCH_SIZE = os.environ.get('BATCH_SIZE', 500)
 
 logger = logging.getLogger(__name__)
 
