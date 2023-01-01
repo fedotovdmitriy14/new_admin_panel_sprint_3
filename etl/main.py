@@ -7,7 +7,11 @@ from settings import POSTGRES_DSL, REDIS_CONFIG, ELASTIC_CONFIG, LOGGER_SETTINGS
 from state import RedisState
 
 
-def etl_process():
+def etl_process() -> None:
+    """
+    Создаются экземпляры RedisState, PostgresExtractor, ElasticLoader
+    В бесконечном цикле обходятся все фильмы, и отправляются в elastic_loader
+    """
     redis_storage = RedisState(REDIS_CONFIG)
     postgres_extractor = PostgresExtractor(POSTGRES_DSL, redis_storage)
     elastic_loader = ElasticLoader(ELASTIC_CONFIG, redis_storage)
@@ -16,7 +20,7 @@ def etl_process():
         if data:
             elastic_loader.update_elasticsearch(data)
             continue
-        sleep(10.0)
+        sleep(60.0)
 
 
 if __name__ == '__main__':

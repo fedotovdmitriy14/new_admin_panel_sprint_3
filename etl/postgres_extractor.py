@@ -27,7 +27,13 @@ class PostgresExtractor:
         return self.connection
 
     @backoff.on_exception(backoff.expo, Exception, max_tries=BACKOFF_MAX_TRIES)
-    def extract_data_from_db(self):
+    def extract_data_from_db(self) -> list:
+        """
+        Делается запрос в базу на получение фильмов и связанных с ними сущностей,
+        где поле modified > modified, которое хранится в redis (modified последней записи из запроса)
+        Как только запрос не вернул результатов в redis попадает datetime.min, что позволяет циклу в etl пройтись по
+        фильмам заново
+        """
         self.check_connection_exists()
         last_modified = self.redis_storage.get_key('last_modified')
         if last_modified is None:

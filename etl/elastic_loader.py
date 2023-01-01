@@ -61,6 +61,10 @@ class ElasticLoader:
 
     @backoff.on_exception(backoff.expo, Exception, max_tries=BACKOFF_MAX_TRIES)
     def update_elasticsearch(self, data: list) -> None:
+        """
+        data отправляется в check_film_state, который возвращает генератор из фильмов для update/insert,
+        которые пачками отправляются в elasticsearch
+        """
         self.create_connection()
         films_to_insert = self.check_film_state(data)
 
