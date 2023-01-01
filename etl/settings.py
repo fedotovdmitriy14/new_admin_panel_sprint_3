@@ -1,3 +1,4 @@
+import logging
 import os
 
 from dotenv import load_dotenv
@@ -7,6 +8,15 @@ load_dotenv()
 
 
 BACKOFF_MAX_TRIES = os.environ.get('BACKOFF_MAX_TRIES')
+
+logger = logging.getLogger(__name__)
+
+LOGGER_SETTINGS = {
+    'format': '%(asctime)s - %(name)s - %(levelname)s - %(message)s',  # noqa 501
+    'datefmt': '%Y-%m-%d %H:%M:%S',
+    'level': logging.INFO,
+    'handlers': [logging.StreamHandler()],
+}
 
 
 class PosgresDsl(BaseSettings):

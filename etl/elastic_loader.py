@@ -1,3 +1,4 @@
+import logging
 from typing import Iterator
 
 import backoff
@@ -6,6 +7,9 @@ from elasticsearch import Elasticsearch, helpers
 from models import FilmWork
 from settings import BACKOFF_MAX_TRIES, ELASTIC_CONFIG
 from state import RedisState
+
+
+logger = logging.getLogger(__name__)
 
 
 class ElasticLoader:
@@ -44,7 +48,7 @@ class ElasticLoader:
             try:
                 validated_film = FilmWork(**film_as_dict)
             except ValueError as e:
-                print('ValueError:', e)
+                logger.error(e)
                 continue
 
             validated_film_as_dict = validated_film.dict()
@@ -67,7 +71,7 @@ class ElasticLoader:
                 index='movies',
                 chunk_size=500,
             )
-            print("\nRESPONSE:", response)
+            logger.info('\nRESPONSE:', response)
 
         except Exception as e:
-            print("\nERROR:", e)
+            logger.info('\nERROR:', e)

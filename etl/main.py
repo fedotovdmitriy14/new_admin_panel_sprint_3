@@ -1,8 +1,9 @@
+import logging
 from time import sleep
 
 from elastic_loader import ElasticLoader
 from postgres_extractor import PostgresExtractor
-from settings import POSTGRES_DSL, REDIS_CONFIG, ELASTIC_CONFIG
+from settings import POSTGRES_DSL, REDIS_CONFIG, ELASTIC_CONFIG, LOGGER_SETTINGS
 from state import RedisState
 
 
@@ -19,4 +20,7 @@ def etl_process():
 
 
 if __name__ == '__main__':
+    logging.basicConfig(**LOGGER_SETTINGS)
+    logger = logging.getLogger(__name__)
+    logger.info("ETL started")
     etl_process()
