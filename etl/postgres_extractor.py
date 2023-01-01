@@ -18,7 +18,7 @@ class PostgresExtractor:
     def check_connection_exists(self) -> None:
         """Создается новое соединения, если его нет или оно закрыто"""
         if self.connection is None or self.connection.closed:
-            self.create_connection()
+            self.connection = self.create_connection()
 
     @backoff.on_exception(backoff.expo, Exception, max_tries=BACKOFF_MAX_TRIES)
     def create_connection(self) -> connection:
@@ -38,6 +38,7 @@ class PostgresExtractor:
         last_modified = self.redis_storage.get_key('last_modified')
         if last_modified is None:
             self.redis_storage.set_key('last_modified', datetime.min)
+            last_modified = datetime.min
 
         with self.connection.cursor() as cursor:
             cursor.execute(f"""
@@ -91,4 +92,5 @@ class PostgresExtractor:
             except IndexError:
                 last_modified = datetime.min
             self.redis_storage.set_key('last_modified', last_modified)
-            return data
+
+        return data
