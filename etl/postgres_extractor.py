@@ -5,12 +5,12 @@ import psycopg2
 from psycopg2.extensions import connection
 from psycopg2.extras import DictCursor
 
-from settings import BACKOFF_MAX_TRIES
+from settings import BACKOFF_MAX_TRIES, PosgresDsl
 from state import RedisState
 
 
 class PostgresExtractor:
-    def __init__(self, dsl: dict, redis_storage: RedisState):
+    def __init__(self, dsl: PosgresDsl, redis_storage: RedisState):
         self.dsl = dsl
         self.connection = None
         self.redis_storage = redis_storage
@@ -23,7 +23,7 @@ class PostgresExtractor:
     @backoff.on_exception(backoff.expo, Exception, max_tries=BACKOFF_MAX_TRIES)
     def create_connection(self) -> connection:
         """Создается новое соединение"""
-        self.connection = psycopg2.connect(**self.dsl, cursor_factory=DictCursor)
+        self.connection = psycopg2.connect(**self.dsl.dict(), cursor_factory=DictCursor)
         return self.connection
 
     @backoff.on_exception(backoff.expo, Exception, max_tries=BACKOFF_MAX_TRIES)

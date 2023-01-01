@@ -1,11 +1,12 @@
 import abc
 import pickle
+
 from typing import Any, Optional
 
 import backoff
 import redis
 
-from settings import BACKOFF_MAX_TRIES, redis_config
+from settings import BACKOFF_MAX_TRIES, RedisConfig
 
 
 class State:
@@ -26,7 +27,7 @@ class State:
 
 
 class RedisState(State):
-    def __init__(self, redis_config: dict, redis_connection: Optional[redis.Redis] = None):
+    def __init__(self, redis_config: RedisConfig, redis_connection: Optional[redis.Redis] = None):
         self.redis_config = redis_config
         self.redis_connection = redis_connection
 
@@ -46,7 +47,7 @@ class RedisState(State):
     @backoff.on_exception(backoff.expo, Exception, max_tries=BACKOFF_MAX_TRIES)
     def create_connection(self) -> redis.Redis:
         """Создается новое соединение к Redis"""
-        return redis.Redis(**self.redis_config)
+        return redis.Redis(**self.redis_config.dict())
 
     @backoff.on_exception(backoff.expo, Exception, max_tries=BACKOFF_MAX_TRIES)
     def set_key(self, key: str, value: Any) -> None:

@@ -4,7 +4,7 @@ import backoff
 from elasticsearch import Elasticsearch, helpers
 
 from models import FilmWork
-from settings import BACKOFF_MAX_TRIES, elastic_config
+from settings import BACKOFF_MAX_TRIES, ELASTIC_CONFIG
 from state import RedisState
 
 
@@ -26,7 +26,7 @@ class ElasticLoader:
     @backoff.on_exception(backoff.expo, Exception, max_tries=BACKOFF_MAX_TRIES)
     def create_connection(self) -> Elasticsearch:
         """Создается новое соединение к Redis"""
-        self.elastic_connection = Elasticsearch(f"http://{elastic_config['host']}:{elastic_config['port']}")
+        self.elastic_connection = Elasticsearch(f"http://{ELASTIC_CONFIG.host}:{ELASTIC_CONFIG.port}")
         return self.elastic_connection
 
     def check_film_state(self, data: list) -> Iterator[dict]:
