@@ -71,7 +71,7 @@ class ElasticLoader:
                 index='movies',
                 chunk_size=BATCH_SIZE,
             )
-            logger.info('\nRESPONSE:', response)
+            logger.info(response)
 
         except Exception as e:
-            logger.info('\nERROR:', e)
+            logger.info(e)
