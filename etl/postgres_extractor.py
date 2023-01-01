@@ -62,10 +62,13 @@ class PostgresExtractor:
                             '[]'
                         ) as writers,
                         array_agg(DISTINCT g.name) as genre,
-                        array_agg(DISTINCT p.full_name) FILTER ( WHERE pfw.role = 'actor' ) as actors_names,
-                        array_agg(DISTINCT p.full_name) FILTER ( WHERE pfw.role = 'writer' ) as writers_names,
-                        array_agg(DISTINCT p.full_name) FILTER ( WHERE pfw.role = 'director' ) as director,
-                        GREATEST(fw.modified, MAX(p.modified), MAX(g.modified)) as greatest_modified
+                        GREATEST(fw.modified, MAX(p.modified), MAX(g.modified)) as greatest_modified,
+                        coalesce(array_agg(DISTINCT p.full_name) FILTER ( WHERE pfw.role = 'director' ),
+                         '{'{}'}') as director,
+                        coalesce(array_agg(DISTINCT p.full_name) FILTER ( WHERE pfw.role = 'writer' ),
+                         '{'{}'}') as writers_names,
+                        coalesce(array_agg(DISTINCT p.full_name) FILTER ( WHERE pfw.role = 'actor' ),
+                         '{'{}'}') as actors_names
                     FROM content.film_work fw
                     LEFT JOIN content.person_film_work pfw ON pfw.film_work_id = fw.id
                     LEFT JOIN content.person p ON p.id = pfw.person_id
