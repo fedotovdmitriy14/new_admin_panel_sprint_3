@@ -69,6 +69,24 @@ services:
     ports:
       - "6379:6379"
 
+  etl:
+    build:
+      context: etl
+    restart: always
+    env_file:
+      - etl/.env
+    networks:
+      - yandex_django
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      elasticsearch:
+        condition: service_started
+#    command:
+#      - python main.py
+
 volumes:
   static:
 
