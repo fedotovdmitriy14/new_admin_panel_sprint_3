@@ -3,9 +3,10 @@ from typing import Iterator
 
 import backoff
 from elasticsearch import Elasticsearch, helpers
+from psycopg2.extras import DictRow
 
 from models import FilmWork
-from settings import BACKOFF_MAX_TRIES, ELASTIC_CONFIG, BATCH_SIZE
+from settings import BACKOFF_MAX_TRIES, BATCH_SIZE, ElasticConfig
 from state import RedisState
 
 
@@ -13,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class ElasticLoader:
-    def __init__(self, config: dict, redis_storage: RedisState):
+    def __init__(self, config: ElasticConfig, redis_storage: RedisState):
         self.config = config
         self.redis_storage = redis_storage
         self.elastic_connection = None
@@ -30,10 +31,10 @@ class ElasticLoader:
     @backoff.on_exception(backoff.expo, Exception, max_tries=BACKOFF_MAX_TRIES)
     def create_connection(self) -> Elasticsearch:
         """Создается новое соединение к Redis"""
-        self.elastic_connection = Elasticsearch(f"http://{ELASTIC_CONFIG.host}:{ELASTIC_CONFIG.port}")
+        self.elastic_connection = Elasticsearch(f"http://{self.config.host}:{self.config.port}")
         return self.elastic_connection
 
-    def check_film_state(self, data: list) -> Iterator[dict]:
+    def check_film_state(self, data: list[DictRow]) -> Iterator[dict]:
         """
         Проверяется дата последнего обновления фильма и связанных с ним жанров и персон.
         Если даты в Redis нет или она меньше GREATEST(fw.modified, MAX(p.modified), MAX(g.modified)),
@@ -60,7 +61,7 @@ class ElasticLoader:
                 yield validated_film_as_dict
 
     @backoff.on_exception(backoff.expo, Exception, max_tries=BACKOFF_MAX_TRIES)
-    def update_elasticsearch(self, data: list) -> None:
+    def update_elasticsearch(self, data: list[DictRow]) -> None:
         """
         data отправляется в check_film_state, который возвращает генератор из фильмов для update/insert,
         которые пачками отправляются в elasticsearch
