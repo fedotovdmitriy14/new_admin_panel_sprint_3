@@ -16,7 +16,7 @@ class PostgresExtractor:
         self.redis_storage = redis_storage
 
     def check_connection_exists(self) -> None:
-        """Создается новое соединения, если его нет или оно закрыто"""
+        """Создается новое соединение, если его нет или оно закрыто"""
         if self.connection is None or self.connection.closed:
             self.connection = self.create_connection()
 
