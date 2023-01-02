@@ -35,9 +35,9 @@ class PostgresExtractor:
         фильмам заново
         """
         self.check_connection_exists()
-        last_modified = self.redis_storage.get_key('last_modified')
+        last_modified = self.redis_storage.get_key('movie_last_modified')
         if last_modified is None:
-            self.redis_storage.set_key('last_modified', datetime.min)
+            self.redis_storage.set_key('movie_last_modified', datetime.min)
             last_modified = datetime.min
 
         with self.connection.cursor() as cursor:
@@ -91,6 +91,6 @@ class PostgresExtractor:
                 last_modified = data[-1][6]
             except IndexError:
                 last_modified = datetime.min
-            self.redis_storage.set_key('last_modified', last_modified)
+            self.redis_storage.set_key('movie_last_modified', last_modified)
 
         return data
