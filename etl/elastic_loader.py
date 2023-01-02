@@ -6,7 +6,7 @@ from elasticsearch import Elasticsearch, helpers
 from psycopg2.extras import DictRow
 
 from models import FilmWork
-from settings import BACKOFF_MAX_TRIES, BATCH_SIZE, ElasticConfig
+from settings import BATCH_SIZE, ElasticConfig, backoff_config
 from state import RedisState
 
 
@@ -28,7 +28,7 @@ class ElasticLoader:
             return self.elastic_connection
         self.elastic_connection = self.create_connection()
 
-    @backoff.on_exception(backoff.expo, Exception, max_tries=BACKOFF_MAX_TRIES)
+    @backoff.on_exception(backoff.expo, Exception, max_tries=backoff_config.backoff_max_tries)
     def create_connection(self) -> Elasticsearch:
         """Создается новое соединение к Redis"""
         self.elastic_connection = Elasticsearch(f"http://{self.config.host}:{self.config.port}")
@@ -60,7 +60,7 @@ class ElasticLoader:
                 self.redis_storage.set_key(film_id, greatest_modified)
                 yield validated_film_as_dict
 
-    @backoff.on_exception(backoff.expo, Exception, max_tries=BACKOFF_MAX_TRIES)
+    @backoff.on_exception(backoff.expo, Exception, max_tries=backoff_config.backoff_max_tries)
     def update_elasticsearch(self, data: list[DictRow]) -> None:
         """
         data отправляется в check_film_state, который возвращает генератор из фильмов для update/insert,

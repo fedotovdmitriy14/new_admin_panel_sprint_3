@@ -7,7 +7,6 @@ from pydantic import Field, BaseSettings
 load_dotenv()
 
 
-BACKOFF_MAX_TRIES = os.environ.get('BACKOFF_MAX_TRIES')
 BATCH_SIZE = os.environ.get('BATCH_SIZE', 500)
 
 logger = logging.getLogger(__name__)
@@ -20,7 +19,11 @@ LOGGER_SETTINGS = {
 }
 
 
-class PosgresDsl(BaseSettings):
+class BackoffConfig(BaseSettings):
+    backoff_max_tries: int = Field(env="BACKOFF_MAX_TRIES")
+
+
+class PostgresDsl(BaseSettings):
     dbname: str = Field(env="DB_NAME")
     user: str = Field(env="DB_USER")
     password: str = Field(env="DB_PASSWORD")
@@ -38,6 +41,7 @@ class ElasticConfig(BaseSettings):
     port: int = Field(env="ELASTIC_PORT")
 
 
-POSTGRES_DSL = PosgresDsl()
-REDIS_CONFIG = RedisConfig()
-ELASTIC_CONFIG = ElasticConfig()
+postgres_dsl = PostgresDsl()
+redis_config = RedisConfig()
+elastic_config = ElasticConfig()
+backoff_config = BackoffConfig()
