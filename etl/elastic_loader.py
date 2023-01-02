@@ -1,22 +1,32 @@
 import logging
-from typing import Iterator
+from typing import Optional, Type
 
 import backoff
 from elasticsearch import Elasticsearch, helpers
+from psycopg2.extras import DictRow
+from pydantic import BaseModel
 
 from models import FilmWork
-from settings import BACKOFF_MAX_TRIES, ELASTIC_CONFIG, BATCH_SIZE
+from settings import BATCH_SIZE, ElasticConfig, backoff_config, redis_config
 from state import RedisState
-
+from transform import DataTransformer
 
 logger = logging.getLogger(__name__)
 
 
 class ElasticLoader:
-    def __init__(self, config: dict, redis_storage: RedisState):
+    def __init__(
+            self,
+            config: ElasticConfig,
+            model: Optional[Type[BaseModel]] = FilmWork,
+            transformer: DataTransformer = DataTransformer(RedisState(redis_config)),
+            model_name: Optional[str] = 'movies',
+    ):
         self.config = config
-        self.redis_storage = redis_storage
+        self.transformer = transformer
         self.elastic_connection = None
+        self.model = model
+        self.model_name= model_name
 
     def is_connection_alive(self) -> bool:
         return self.elastic_connection.ping()
@@ -27,52 +37,26 @@ class ElasticLoader:
             return self.elastic_connection
         self.elastic_connection = self.create_connection()
 
-    @backoff.on_exception(backoff.expo, Exception, max_tries=BACKOFF_MAX_TRIES)
+    @backoff.on_exception(backoff.expo, Exception, max_tries=backoff_config.backoff_max_tries)
     def create_connection(self) -> Elasticsearch:
         """Создается новое соединение к Redis"""
-        self.elastic_connection = Elasticsearch(f"http://{ELASTIC_CONFIG.host}:{ELASTIC_CONFIG.port}")
+        self.elastic_connection = Elasticsearch(f"http://{self.config.host}:{self.config.port}")
         return self.elastic_connection
 
-    def check_film_state(self, data: list) -> Iterator[dict]:
-        """
-        Проверяется дата последнего обновления фильма и связанных с ним жанров и персон.
-        Если даты в Redis нет или она меньше GREATEST(fw.modified, MAX(p.modified), MAX(g.modified)),
-        то этот фильм попадает в генератор, откуда будет сохранен в Elasticsearch
-        Также каждый фильм валидируется при помощи pydantic
-        """
-        for film in data:
-            film_as_dict = dict(film)
-            film_id = film_as_dict['id']
-            greatest_modified = film_as_dict['greatest_modified']
-
-            try:
-                validated_film = FilmWork(**film_as_dict)
-            except ValueError as e:
-                logger.error(e)
-                continue
-
-            validated_film_as_dict = validated_film.dict()
-            validated_film_as_dict['_id'] = validated_film_as_dict.get('id')
-            film_last_modified = self.redis_storage.get_key(film_id)
-
-            if film_last_modified is None or film_last_modified < greatest_modified:
-                self.redis_storage.set_key(film_id, greatest_modified)
-                yield validated_film_as_dict
-
-    @backoff.on_exception(backoff.expo, Exception, max_tries=BACKOFF_MAX_TRIES)
-    def update_elasticsearch(self, data: list) -> None:
+    @backoff.on_exception(backoff.expo, Exception, max_tries=backoff_config.backoff_max_tries)
+    def update_elasticsearch(self, data: list[DictRow]) -> None:
         """
         data отправляется в check_film_state, который возвращает генератор из фильмов для update/insert,
         которые пачками отправляются в elasticsearch
         """
         self.create_connection()
-        films_to_insert = self.check_film_state(data)
+        films_to_insert = self.transformer.check_data_state(data, self.model)
 
         try:
             response = helpers.bulk(
                 client=self.elastic_connection,
                 actions=films_to_insert,
-                index='movies',
+                index=self.model_name,
                 chunk_size=BATCH_SIZE,
             )
             logger.info(response)

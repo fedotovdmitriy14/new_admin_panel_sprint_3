@@ -6,7 +6,7 @@ from typing import Any, Optional
 import backoff
 import redis
 
-from settings import BACKOFF_MAX_TRIES, RedisConfig
+from settings import RedisConfig, backoff_config
 
 
 class State:
@@ -40,18 +40,18 @@ class RedisState(State):
             return self.redis_connection
         self.redis_connection = self.create_connection()
 
-    @backoff.on_exception(backoff.expo, Exception, max_tries=BACKOFF_MAX_TRIES)
+    @backoff.on_exception(backoff.expo, Exception, max_tries=backoff_config.backoff_max_tries)
     def create_connection(self) -> redis.Redis:
         """Создается новое соединение к Redis"""
         return redis.Redis(**self.redis_config.dict())
 
-    @backoff.on_exception(backoff.expo, Exception, max_tries=BACKOFF_MAX_TRIES)
+    @backoff.on_exception(backoff.expo, Exception, max_tries=backoff_config.backoff_max_tries)
     def set_key(self, key: str, value: Any) -> None:
         """Сохраняется ключ и его значение в Redis"""
         self.check_connection_exists()
         self.redis_connection.set(key, pickle.dumps(value))
 
-    @backoff.on_exception(backoff.expo, Exception, max_tries=BACKOFF_MAX_TRIES)
+    @backoff.on_exception(backoff.expo, Exception, max_tries=backoff_config.backoff_max_tries)
     def get_key(self, key: str) -> Any:
         """Получение значения по переданному ключу"""
         self.check_connection_exists()
