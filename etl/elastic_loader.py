@@ -26,7 +26,7 @@ class ElasticLoader:
         self.transformer = transformer
         self.elastic_connection = None
         self.model = model
-        self.model_name= model_name
+        self.model_name = model_name
 
     def is_connection_alive(self) -> bool:
         return self.elastic_connection.ping()

@@ -3,14 +3,14 @@ from datetime import datetime
 import backoff
 import psycopg2
 from psycopg2.extensions import connection
-from psycopg2.extras import DictCursor
+from psycopg2.extras import DictCursor, DictRow
 
 from settings import PostgresDsl, BATCH_SIZE, backoff_config
-from state import RedisState
+from state import State
 
 
 class PostgresExtractor:
-    def __init__(self, dsl: PostgresDsl, redis_storage: RedisState):
+    def __init__(self, dsl: PostgresDsl, redis_storage: State):
         self.dsl = dsl
         self.connection = None
         self.redis_storage = redis_storage
@@ -27,7 +27,7 @@ class PostgresExtractor:
         return self.connection
 
     @backoff.on_exception(backoff.expo, Exception, max_tries=backoff_config.backoff_max_tries)
-    def extract_data_from_db(self) -> list:
+    def extract_data_from_db(self) -> list[DictRow]:
         """
         Делается запрос в базу на получение фильмов и связанных с ними сущностей,
         где поле modified > modified, которое хранится в redis (modified последней записи из запроса)
