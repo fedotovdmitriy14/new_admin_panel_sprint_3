@@ -15,6 +15,8 @@ def etl_process() -> None:
     redis_storage = RedisState(redis_config)
     postgres_extractor = PostgresExtractor(postgres_dsl, redis_storage)
     elastic_loader = ElasticLoader(elastic_config)
+    elastic_loader.create_connection()
+    elastic_loader.create_indices()
     while True:
         data = postgres_extractor.extract_data_from_db()
         if data:

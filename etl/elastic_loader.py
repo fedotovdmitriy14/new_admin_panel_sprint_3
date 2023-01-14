@@ -6,6 +6,7 @@ from elasticsearch import Elasticsearch, helpers
 from psycopg2.extras import DictRow
 from pydantic import BaseModel
 
+from etl.elastic_index import FILMS_INDEX, PERSONS_INDEX, GENRES_INDEX
 from models import FilmWork
 from settings import BATCH_SIZE, ElasticConfig, backoff_config, redis_config
 from state import RedisState
@@ -38,6 +39,13 @@ class ElasticLoader:
         self.elastic_connection = self.create_connection()
 
     @backoff.on_exception(backoff.expo, Exception, max_tries=backoff_config.backoff_max_tries)
+    def create_indices(self):
+        indices_dict = {'movies': FILMS_INDEX, 'persons': PERSONS_INDEX, 'genres': GENRES_INDEX}
+        for index_name, index_dict in indices_dict.items():
+            if not self.elastic_connection.indices.exists(index=index_name):
+                self.elastic_connection.indices.create(index=index_name, ignore=400, body=index_dict)
+
+    @backoff.on_exception(backoff.expo, Exception, max_tries=backoff_config.backoff_max_tries)
     def create_connection(self) -> Elasticsearch:
         """Создается новое соединение к Redis"""
         self.elastic_connection = Elasticsearch(f"http://{self.config.host}:{self.config.port}")
@@ -49,7 +57,6 @@ class ElasticLoader:
         data отправляется в check_film_state, который возвращает генератор из фильмов для update/insert,
         которые пачками отправляются в elasticsearch
         """
-        self.create_connection()
         films_to_insert = self.transformer.check_data_state(data, self.model)
 
         try:
