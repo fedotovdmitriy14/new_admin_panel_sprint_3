@@ -17,15 +17,11 @@ class ElasticLoader:
     def __init__(
             self,
             config: ElasticConfig,
-            # model: Optional[Type[BaseModel]] = FilmWork,
             transformer: DataTransformer = DataTransformer(RedisState(redis_config)),
-            # model_name: Optional[str] = 'movies',
     ):
         self.config = config
         self.transformer = transformer
         self.elastic_connection = None
-        # self.model = model
-        # self.model_name = model_name
 
     def is_connection_alive(self) -> bool:
         return self.elastic_connection.ping()
