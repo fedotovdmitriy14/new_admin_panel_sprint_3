@@ -15,6 +15,7 @@ def etl_process() -> None:
     redis_storage = RedisState(redis_config)
     postgres_extractor = PostgresExtractor(postgres_dsl, redis_storage)
     elastic_loader = ElasticLoader(elastic_config)
+    elastic_loader.create_indices()
     while True:
         for index_name, index_params in INDEXES.items():
             model = index_params[1]
