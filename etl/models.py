@@ -3,13 +3,15 @@ from typing import Optional, List
 from pydantic import BaseModel, Field
 
 
-class Person(BaseModel):
+class AbstractModel(BaseModel):
     id: Optional[str] = None
+
+
+class Person(AbstractModel):
     name: Optional[str] = None
 
 
-class FilmWork(BaseModel):
-    id: str
+class FilmWork(AbstractModel):
     title: Optional[str] = None
     description: Optional[str] = None
     imdb_rating: Optional[float] = Field(alias='rating')
@@ -19,3 +21,7 @@ class FilmWork(BaseModel):
     genre: Optional[List] = None
     actors_names: Optional[List] = None
     writers_names: Optional[List] = None
+
+
+class Genre(AbstractModel):
+    name: Optional[str] = None
