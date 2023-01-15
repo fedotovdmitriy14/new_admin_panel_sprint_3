@@ -4,6 +4,9 @@ import os
 from dotenv import load_dotenv
 from pydantic import Field, BaseSettings
 
+from models import FilmWork, Genre
+from postgres_queries import get_movie_query, get_genre_query
+
 load_dotenv()
 
 
@@ -18,6 +21,10 @@ LOGGER_SETTINGS = {
     'handlers': [logging.StreamHandler()],
 }
 
+INDEXES = {
+    'movies': (get_movie_query, FilmWork),
+    'genres': (get_genre_query, Genre),
+}
 
 class BackoffConfig(BaseSettings):
     backoff_max_tries: int = Field(env="BACKOFF_MAX_TRIES")
