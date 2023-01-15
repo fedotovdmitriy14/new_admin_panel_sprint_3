@@ -30,10 +30,10 @@ class PostgresExtractor:
     @backoff.on_exception(backoff.expo, Exception, max_tries=backoff_config.backoff_max_tries)
     def extract_data_from_db(self, index_name: str, query_function: Callable) -> list[DictRow]:
         """
-        Делается запрос в базу на получение фильмов и связанных с ними сущностей,
+        Делается запрос в базу на получение нужной сущности,
         где поле modified > modified, которое хранится в redis (modified последней записи из запроса)
         Как только запрос не вернул результатов в redis попадает datetime.min, что позволяет циклу в etl пройтись по
-        фильмам заново
+        записям заново
         """
         self.check_connection_exists()
         last_modified = self.redis_storage.get_key(f'{index_name}_last_modified')
