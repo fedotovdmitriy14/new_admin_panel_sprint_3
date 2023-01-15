@@ -40,6 +40,7 @@ class ElasticLoader:
 
     @backoff.on_exception(backoff.expo, Exception, max_tries=backoff_config.backoff_max_tries)
     def create_indices(self):
+        self.check_connection_exists()
         indices_dict = {'movies': FILMS_INDEX, 'persons': PERSONS_INDEX, 'genres': GENRES_INDEX}
         for index_name, index_dict in indices_dict.items():
             if not self.elastic_connection.indices.exists(index=index_name):
