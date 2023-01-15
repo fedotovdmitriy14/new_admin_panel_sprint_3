@@ -17,17 +17,21 @@ class DataTransformer:
             self,
             data: list[DictRow],
             model: Type[BaseModel],
+            index_name: str,
     ) -> Iterator[dict]:
         """
-        Проверяется дата последнего обновления фильма и связанных с ним жанров и персон.
-        Если даты в Redis нет или она меньше GREATEST(fw.modified, MAX(p.modified), MAX(g.modified)),
-        то этот фильм попадает в генератор, откуда будет сохранен в Elasticsearch
-        Также каждый фильм валидируется при помощи pydantic
+        Проверяется дата последнего обновления модели. Для фильмов - также связанных с ним жанров и персон.
+        Если даты в Redis нет или она меньше modified (GREATEST(fw.modified, MAX(p.modified), MAX(g.modified)) - для
+        фильмов), то эта запись попадает в генератор, откуда будет сохранен в Elasticsearch
+        Также каждая запись валидируется при помощи pydantic
         """
         for row in data:
             row_as_dict = dict(row)
-            row_id = row_as_dict['id']
-            greatest_modified = row_as_dict['greatest_modified']
+            row_id = row_as_dict.get('id')
+            if index_name == 'movies':
+                greatest_modified = row_as_dict.get('greatest_modified')
+            else:
+                greatest_modified = row_as_dict.get('modified')
 
             try:
                 validated_row = model(**row_as_dict)
