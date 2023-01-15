@@ -55,7 +55,7 @@ def get_genre_query(batch_size: str, last_modified: str) -> tuple:
     """Формирование sql запроса для genres"""
 
     genre_query = f"""
-        SELECT 
+        SELECT
             g.id,
             g.name,
             g.modified

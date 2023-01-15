@@ -26,6 +26,7 @@ INDEXES = {
     'genres': (get_genre_query, Genre),
 }
 
+
 class BackoffConfig(BaseSettings):
     backoff_max_tries: int = Field(env="BACKOFF_MAX_TRIES")
 
