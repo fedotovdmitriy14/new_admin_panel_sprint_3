@@ -6,7 +6,6 @@ from elasticsearch import Elasticsearch, helpers
 from psycopg2.extras import DictRow
 from pydantic import BaseModel
 
-from models import FilmWork
 from settings import BATCH_SIZE, ElasticConfig, backoff_config, redis_config
 from state import RedisState
 from transform import DataTransformer
@@ -18,15 +17,15 @@ class ElasticLoader:
     def __init__(
             self,
             config: ElasticConfig,
-            model: Optional[Type[BaseModel]] = FilmWork,
+            # model: Optional[Type[BaseModel]] = FilmWork,
             transformer: DataTransformer = DataTransformer(RedisState(redis_config)),
-            model_name: Optional[str] = 'movies',
+            # model_name: Optional[str] = 'movies',
     ):
         self.config = config
         self.transformer = transformer
         self.elastic_connection = None
-        self.model = model
-        self.model_name = model_name
+        # self.model = model
+        # self.model_name = model_name
 
     def is_connection_alive(self) -> bool:
         return self.elastic_connection.ping()
@@ -44,19 +43,23 @@ class ElasticLoader:
         return self.elastic_connection
 
     @backoff.on_exception(backoff.expo, Exception, max_tries=backoff_config.backoff_max_tries)
-    def update_elasticsearch(self, data: list[DictRow]) -> None:
+    def update_elasticsearch(
+            self,
+            data: list[DictRow],
+            index_model: Optional[Type[BaseModel]],
+            index_name: str) -> None:
         """
-        data отправляется в check_film_state, который возвращает генератор из фильмов для update/insert,
+        data отправляется в check_data_state, который возвращает генератор из записей для update/insert,
         которые пачками отправляются в elasticsearch
         """
         self.create_connection()
-        films_to_insert = self.transformer.check_data_state(data, self.model)
+        values_to_insert = self.transformer.check_data_state(data, model=index_model, index_name=index_name)
 
         try:
             response = helpers.bulk(
                 client=self.elastic_connection,
-                actions=films_to_insert,
-                index=self.model_name,
+                actions=values_to_insert,
+                index=index_name,
                 chunk_size=BATCH_SIZE,
             )
             logger.info(response)
