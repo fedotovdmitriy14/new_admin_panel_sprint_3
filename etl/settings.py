@@ -4,8 +4,8 @@ import os
 from dotenv import load_dotenv
 from pydantic import Field, BaseSettings
 
-from models import FilmWork, Genre
-from postgres_queries import get_movie_query, get_genre_query
+from models import FilmWork, Genre, Person
+from postgres_queries import get_movie_query, get_genre_query, get_person_query
 
 load_dotenv()
 
@@ -24,6 +24,7 @@ LOGGER_SETTINGS = {
 INDEXES = {
     'movies': (get_movie_query, FilmWork),
     'genres': (get_genre_query, Genre),
+    'persons': (get_person_query, Person)
 }
 
 
