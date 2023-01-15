@@ -198,6 +198,12 @@ GENRES_INDEX = {
     "mappings": {
         "dynamic": "strict",
         "properties": {
+            "id": {
+                "type": "keyword"
+            },
+            "name": {
+                "type": "keyword"
+            }
         }
     }
 }

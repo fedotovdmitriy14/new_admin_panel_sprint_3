@@ -1,21 +1,28 @@
 from typing import Optional, List
+from uuid import UUID
 
 from pydantic import BaseModel, Field
 
 
-class Person(BaseModel):
-    id: Optional[str] = None
-    name: Optional[str] = None
+class AbstractModel(BaseModel):
+    id: UUID
 
 
-class FilmWork(BaseModel):
-    id: str
-    title: Optional[str] = None
+class Person(AbstractModel):
+    name: str
+
+
+class FilmWork(AbstractModel):
+    title: str
     description: Optional[str] = None
-    imdb_rating: Optional[float] = Field(alias='rating')
+    imdb_rating: float = Field(alias='rating')
     actors: Optional[List[Person]] = None
     writers: Optional[List[Person]] = None
     director: Optional[List] = None
     genre: Optional[List] = None
     actors_names: Optional[List] = None
     writers_names: Optional[List] = None
+
+
+class Genre(AbstractModel):
+    name: str
