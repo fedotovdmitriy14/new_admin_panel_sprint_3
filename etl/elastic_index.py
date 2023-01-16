@@ -150,6 +150,20 @@ PERSONS_INDEX = {
     "mappings": {
         "dynamic": "strict",
         "properties": {
+            "id": {
+                "type": "keyword"
+            },
+            "name": {
+                "type": "text",
+                "analyzer": "ru_en",
+                "fields": {"raw": {"type": "keyword"}},
+            },
+            "roles": {
+                "type": "keyword"
+            },
+            "film_ids": {
+                "type": "keyword"
+            },
         }
     }
 }
