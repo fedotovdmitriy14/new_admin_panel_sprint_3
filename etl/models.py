@@ -9,12 +9,12 @@ class AbstractModel(BaseModel):
 
 
 class PersonShort(AbstractModel):
-    full_name: str
+    name: str
 
 
 class Person(PersonShort):
-    roles: Optional[List[str]]
-    film_ids: Optional[List[str]]
+    roles: Optional[List[str]] = None
+    film_ids: Optional[List[str]] = None
 
 
 class FilmWork(AbstractModel):
