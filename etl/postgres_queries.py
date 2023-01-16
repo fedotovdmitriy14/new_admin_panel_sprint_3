@@ -72,17 +72,18 @@ def get_genre_query(batch_size: str, last_modified: str) -> tuple:
 
 def get_person_query(batch_size: str, last_modified: str) -> tuple:
     person_query = f"""
-          SELECT
-          pfw.person_id id,
-          content.person.full_name, pfw.role,
-          array_agg(pfw.film_work_id) AS film_ids,
-          content.person.modified
-          FROM content.person_film_work pfw
-          JOIN content.film_work fw ON fw.id = pfw.film_work_id
-          JOIN content.person ON person.id = pfw.person_id
-          WHERE content.person.modified > '{last_modified}'
-          GROUP BY pfw.person_id, content.person.modified, content.person.full_name, pfw.role
-          LIMIT {batch_size};
+        SELECT
+            p.id,
+            p.full_name, 
+            array_agg(DISTINCT pfw.role) as roles,
+            array_agg(DISTINCT pfw.film_work_id) as film_ids,
+            p.modified
+        FROM content.person p
+        LEFT JOIN content.person_film_work pfw ON pfw.person_id = p.id
+        WHERE p.modified >'{last_modified}'
+        GROUP BY p.id
+        ORDER BY p.modified
+        LIMIT {batch_size};
       """
     last_modified_index = 4
     return person_query, last_modified_index
