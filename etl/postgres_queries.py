@@ -74,7 +74,7 @@ def get_person_query(batch_size: str, last_modified: str) -> tuple:
     person_query = f"""
         SELECT
             p.id,
-            p.full_name, 
+            p.full_name as name, 
             array_agg(DISTINCT pfw.role) as roles,
             array_agg(DISTINCT pfw.film_work_id) as film_ids,
             p.modified
