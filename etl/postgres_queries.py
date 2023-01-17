@@ -76,7 +76,7 @@ def get_person_query(batch_size: str, last_modified: str) -> tuple:
             p.id,
             p.full_name as name, 
             array_agg(DISTINCT pfw.role) as roles,
-            array_agg(DISTINCT pfw.film_work_id) as film_ids,
+            array_agg(DISTINCT pfw.film_work_id::text) as film_ids,
             p.modified
         FROM content.person p
         LEFT JOIN content.person_film_work pfw ON pfw.person_id = p.id

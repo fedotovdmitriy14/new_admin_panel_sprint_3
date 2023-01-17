@@ -20,7 +20,7 @@ class Person(PersonShort):
 class FilmWork(AbstractModel):
     title: str
     description: Optional[str] = None
-    imdb_rating: float = Field(alias='rating')
+    imdb_rating: Optional[float] = Field(alias='rating')
     actors: Optional[List[PersonShort]] = None
     writers: Optional[List[PersonShort]] = None
     director: Optional[List] = None
