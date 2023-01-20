@@ -23,8 +23,9 @@ class FilmWork(AbstractModel):
     imdb_rating: Optional[float] = Field(alias='rating')
     actors: Optional[List[PersonShort]] = None
     writers: Optional[List[PersonShort]] = None
+    genre: Optional[List[PersonShort]] = None
     director: Optional[List] = None
-    genre: Optional[List] = None
+    genre_names: Optional[List] = None
     actors_names: Optional[List] = None
     writers_names: Optional[List] = None
 
