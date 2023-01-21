@@ -28,7 +28,16 @@ def get_movie_query(batch_size: str, last_modified: str) -> tuple:
                 ) FILTER (WHERE p.id is not null and pfw.role = 'writer'),
                 '[]'
             ) as writers,
-            array_agg(DISTINCT g.name) as genre,
+            COALESCE (
+                json_agg(
+                    DISTINCT jsonb_build_object(
+                        'id', g.id,
+                        'name', g.name
+                    )
+                ),
+                '[]'
+            ) as genre,
+            array_agg(DISTINCT g.name) as genre_names,
             GREATEST(fw.modified, MAX(p.modified), MAX(g.modified)) as greatest_modified,
             coalesce(array_agg(DISTINCT p.full_name) FILTER ( WHERE pfw.role = 'director' ),
              '{'{}'}') as director,

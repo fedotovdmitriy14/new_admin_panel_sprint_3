@@ -48,8 +48,21 @@ FILMS_INDEX = {
             "imdb_rating": {
                 "type": "float"
             },
-            "genre": {
+            "genre_names": {
                 "type": "keyword"
+            },
+            "genre": {
+                "type": "nested",
+                "dynamic": "strict",
+                "properties": {
+                    "id": {
+                        "type": "keyword"
+                    },
+                    "name": {
+                        "type": "text",
+                        "analyzer": "ru_en"
+                    }
+                }
             },
             "title": {
                 "type": "text",
